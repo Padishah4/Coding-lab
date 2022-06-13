@@ -69,6 +69,13 @@ public class UserController {
 
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
+    @GetMapping("/squat")
+    public ResponseEntity<Page<UserDTO>> getAllUsersSquat(@PageableDefault(size = 1, sort = {"squat"}, direction = Sort.Direction.DESC) Pageable pageable)
+    {
+        Page<UserDTO> pageDTO = getSortedUsers(pageable);
+
+        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
+    }
 
 
     private Page<UserDTO> getSortedUsers(Pageable pageable) {
