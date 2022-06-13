@@ -76,7 +76,13 @@ public class UserController {
 
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
+    @GetMapping("/bench")
+    public ResponseEntity<Page<UserDTO>> getAllUsersBench(@PageableDefault(size = 1, sort = {"bench"}, direction = Sort.Direction.DESC) Pageable pageable)
+    {
+        Page<UserDTO> pageDTO = getSortedUsers(pageable);
 
+        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
+    }
 
     private Page<UserDTO> getSortedUsers(Pageable pageable) {
         Page<User> page = userService.getAllUsers(pageable);
