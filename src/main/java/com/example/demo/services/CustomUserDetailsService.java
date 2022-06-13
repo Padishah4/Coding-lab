@@ -35,14 +35,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
    public static User build(User user){
-     List<GrantedAuthority> authorities = user.getRoles().stream().map(role-> new SimpleGrantedAuthority(role.name()))
-             .collect(Collectors.toList());
+//     List<GrantedAuthority> authorities = user.getRoles().stream().map(role-> new SimpleGrantedAuthority(role.name()))
+//             .collect(Collectors.toList());
      return new User(
              user.getId(),
                      user.getUsername(),
                      user.getEmail(),
-                     user.getPassword(),
-         authorities);
+                     user.getPassword());
    }
 
 }

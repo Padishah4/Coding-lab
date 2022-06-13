@@ -14,20 +14,13 @@ public class Ratings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
+    @Column(nullable = false)
+    private  String lastname;
+    private String ratings;
     private String caption;
     private String location;
     private Integer likes;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @OneToMany(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER , mappedBy = "post" ,orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdDate = LocalDateTime.now();
-    }
 }

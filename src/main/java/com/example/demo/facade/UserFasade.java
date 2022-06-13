@@ -13,6 +13,9 @@ public class UserFasade {
     userDTO.setLastname(user.getLastname());
     userDTO.setUsername(user.getUsername());
     userDTO.setBio(user.getBio());
+    userDTO.setPull(user.getPull());
+    userDTO.setBench(user.getBench());
+    userDTO.setSquat(user.getSquat());
     return userDTO;
 
 

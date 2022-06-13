@@ -9,18 +9,28 @@ import com.example.demo.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
     public static final Logger LOG = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private MailSender mailSender;
 
 
     @Autowired
@@ -34,10 +44,23 @@ public class UserService {
         user.setEmail(userIn.getEmail());
         user.setName(userIn.getFirstname());
         user.setLastname(userIn.getLastname());
+        user.setActivate(true);
+        user.setActivationCode(UUID.randomUUID().toString());
         user.setUsername(userIn.getUsername());
         user.setPassword(passwordEncoder.encode(userIn.getPassword()));
-        user.getRoles().add(ERole.ROLE_USER);
+//        user.getRoles().add(ERole.ROLE_USER);
 
+        if (!StringUtils.isEmpty(user.getEmail())){
+
+            String message = String.format(
+                    "Hello, %s! \n" +
+                            "Welcome to Workout. Please, visit next link: http://localhost:8080/activate/%s ",
+                    user.getUsername(),
+                    user.getActivationCode()
+            );
+
+            mailSender.send(user.getEmail(),"Activation code", message);
+        }
         try {
             LOG.info("Saving User {}", userIn.getEmail());
             return userRepository.save(user);
@@ -67,5 +90,24 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(()-> new UsernameNotFoundException("User not found"));
+    }
+
+    public Page<User> getAllUsers(Pageable pageable)
+    {
+        Page<User> page = userRepository.findAll(pageable);
+        return page;
+    }
+
+
+
+    public boolean activateUser(String code) {
+       User user =  userRepository.findByActivationCode(code);
+
+       if (user == null){
+           return false;
+       }
+       user.setActivationCode(null);
+       userRepository.save(user);
+        return true;
     }
 }

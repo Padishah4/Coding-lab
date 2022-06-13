@@ -13,6 +13,9 @@ public class UserDTO {
     @NotEmpty
     private String lastname;
     private String username;
+    private Long pull;
+    private Long squat;
+    private Long bench;
     private String bio;
 
 }

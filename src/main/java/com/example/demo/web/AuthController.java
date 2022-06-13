@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -57,5 +58,17 @@ public class AuthController {
 
         userService.createUser(signupRequest);
         return ResponseEntity.ok(new MessageResponse("User registered successfully "));
+    }
+
+    @GetMapping("/activate/{code}")
+    public String activate(Model model, @PathVariable String code) {
+        boolean isActivated = userService.activateUser(code);
+        if (isActivated){
+            model.addAttribute("message","User successfully activated");
+
+        } else {
+            model.addAttribute("message","Activation code is not found");
+        }
+        return model.getAttribute("message").toString();
     }
 }

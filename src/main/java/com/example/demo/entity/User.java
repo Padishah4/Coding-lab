@@ -1,10 +1,8 @@
 package com.example.demo.entity;
 
-import com.example.demo.entity.Post;
 import com.example.demo.entity.enums.ERole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.apache.catalina.security.SecurityUtil;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -30,11 +28,23 @@ public class User implements UserDetails {
     private String bio;
     @Column(length = 3000)
     private String password;
+    @Column
+    private String class_group;
+    @Column
+    private Long pull;
+    @Column
+    private Long bench;
+    @Column
+    private Long squat;
+    private boolean activate;
+    private String activationCode;
 
-    @ElementCollection(targetClass = ERole.class)
-
-    @CollectionTable(name = "user_role",
-    joinColumns = @JoinColumn(name = "user_id"))
+    @ManyToMany
+    @JoinTable(name = "user_role",
+    joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(
+                    name = "role_id", referencedColumnName = "id"
+            ))
     private Set<ERole> roles = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL , fetch = FetchType.LAZY, mappedBy = "user" , orphanRemoval = true)
@@ -43,23 +53,33 @@ public class User implements UserDetails {
     @Column(updatable = false)
     private LocalDateTime createdDate;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "user", orphanRemoval = true)
+    private List<Ratings> ratings = new ArrayList<>();
+
     @Transient
     public Collection<? extends GrantedAuthority> authorities;
     public User(){
     }
 
-    public User(Long id, String username, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+    public User(Long id, String username, String email, String password) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.authorities = authorities;
+//        this.authorities = authorities;
     }
 
     @PrePersist
     protected void onCreate() {
         this.createdDate = LocalDateTime.now();
+        this.class_group = "none";
+        this.pull = 0L;
+        this.bench = 0L;
+        this.squat = 0L;
+
+
     }
+
 
 //Security
 
