@@ -62,7 +62,20 @@ public class UserController {
         return new ResponseEntity<>(userUpdated, HttpStatus.OK);
     }
 
+    @GetMapping("/pull")
+    public ResponseEntity<Page<UserDTO>> getAllUsers(@PageableDefault(size = 1, sort = {"pull"}, direction = Sort.Direction.DESC) Pageable pageable)
+    {
+        Page<UserDTO> pageDTO = getSortedUsers(pageable);
 
+        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
+    }
+
+
+    private Page<UserDTO> getSortedUsers(Pageable pageable) {
+        Page<User> page = userService.getAllUsers(pageable);
+        Page<UserDTO> pageDTO = page.map(userFasade::userToUserDto);
+        return pageDTO;
+    }
 
 
 
