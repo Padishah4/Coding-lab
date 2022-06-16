@@ -1,6 +1,4 @@
 package com.example.demo.web;
-
-
 import com.example.demo.payload.reponce.JWTTokenSuccessResponse;
 import com.example.demo.payload.reponce.MessageResponse;
 import com.example.demo.payload.request.LoginRequest;
@@ -10,6 +8,7 @@ import com.example.demo.security.SecurityConstants;
 import com.example.demo.services.UserService;
 import com.example.demo.validations.ResponseErrorValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,14 +19,11 @@ import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
-
 @CrossOrigin
 @RestController
 @RequestMapping("/api/auth")
 @PreAuthorize("permitAll()")
-
 public class AuthController {
     @Autowired
     private JWTTokenProvider jwtTokenProvider;
@@ -37,7 +33,6 @@ public class AuthController {
     private ResponseErrorValidation responseErrorValidation;
     @Autowired
     private UserService userService;
-
     @PostMapping("/signin")
     public ResponseEntity<Object> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
@@ -46,29 +41,30 @@ public class AuthController {
                 loginRequest.getUsername(),
                 loginRequest.getPassword()
         ));
+        boolean isActivated = userService.isActivated(loginRequest.getUsername());
+        if (!isActivated) {
+            return new ResponseEntity<>(new MessageResponse("User with this email is not activated"),
+                    HttpStatus.BAD_REQUEST);
+        }
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = SecurityConstants.TOKEN_PREFIX + jwtTokenProvider.generateToken(authentication);
         return ResponseEntity.ok(new JWTTokenSuccessResponse(true, jwt));
     }
-
     @PostMapping("/signup")
     public ResponseEntity<Object> registerUser(@Valid @RequestBody SignupRequest signupRequest, BindingResult bindingResult){
         ResponseEntity<Object> errors = responseErrorValidation.mapValidationService(bindingResult);
         if (!ObjectUtils.isEmpty(errors)) return errors;
-
         userService.createUser(signupRequest);
         return ResponseEntity.ok(new MessageResponse("User registered successfully "));
     }
-
     @GetMapping("/activate/{code}")
-    public String activate(Model model, @PathVariable String code) {
-        boolean isActivated = userService.activateUser(code);
-        if (isActivated){
-            model.addAttribute("message","User successfully activated");
-
-        } else {
-            model.addAttribute("message","Activation code is not found");
+    public ResponseEntity<String> activate(@PathVariable String code) {
+        try {
+            userService.activate(code);
         }
-        return model.getAttribute("message").toString();
+        catch (Exception e) {
+            return new ResponseEntity<>("Activation code is not found", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("User is activated", HttpStatus.OK);
     }
 }
